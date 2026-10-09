@@ -1,5 +1,23 @@
 # 考核⑤ 喇叭：播放音频
 
+## 两个固件版本
+
+| 镜像 | 大小 | 能放什么 | 说明 |
+|---|---|---|---|
+|  | 21,519,360 B | 只有 **WAV** | 基础版（验证喇叭用） |
+| **** | **21,650,432 B** | **WAV + MP3** | ★ 推荐（含 madplay） |
+
+> **v8 比 v7 大 128KB** = madplay + libid3tag 的体积（真的编进去了的物证）。
+
+**播放命令**：
+Playing WAVE '/root/audio/test_440.wav' : Signed 16 bit Little Endian, Rate 44100 Hz, Mono
+
+/bin/sh: madplay: not found
+
+**能放什么音乐、怎么加 MP3 支持** → 见 [](doc/能播放什么音乐-实测.md)
+
+---
+
 ## 状态
 
 | 项目 | 状态 |
@@ -67,7 +85,11 @@ adb shell "aplay /root/audio/test_440.wav"
 
 | 文件 | 内容 |
 |---|---|
-| `doc/喇叭-播放音频全程教程.md` | ★ **完整复刻教程** |
+| `doc/喇叭-播放音频全程教程.md` | ★ **完整复刻教程**（诊断链/原理图/时序） |
+| `doc/能播放什么音乐-实测.md` | ★ **音乐播放实测**（格式支持/MP3开启方法） |
+| `patches/deploy_audio.sh` | 一键部署脚本（推音频+检查环境） |
+| `patches/music_twinkle.mp3` | MP3 测试文件（小星星） |
+| `patches/notify.mp3` | 短提示音 |
 | `patches/rc_local_new.sh` | 开机自动配置脚本（音频 + 显示） |
 | `patches/gen_test_audio.py` | 生成测试音频的 Python 脚本 |
 | `patches/test_440.wav` | 440Hz 标准音 A 测试文件 |

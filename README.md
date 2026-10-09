@@ -4,17 +4,19 @@
 
 | 镜像 | 大小 | 能放什么 | 说明 |
 |---|---|---|---|
-|  | 21,519,360 B | 只有 **WAV** | 基础版（验证喇叭用） |
-| **** | **21,650,432 B** | **WAV + MP3** | ★ 推荐（含 madplay） |
+| `t113_v7_speaker.img` | 21,519,360 B | 只有 **WAV** | 基础版（验证喇叭用） |
+| **`t113_v8_music.img`** | **21,650,432 B** | **WAV + MP3** | ★ 推荐（含 madplay） |
 
 > **v8 比 v7 大 128KB** = madplay + libid3tag 的体积（真的编进去了的物证）。
 
 **播放命令**：
-Playing WAVE '/root/audio/test_440.wav' : Signed 16 bit Little Endian, Rate 44100 Hz, Mono
 
-/bin/sh: madplay: not found
+```sh
+adb shell "aplay  /root/audio/test_440.wav"          # WAV
+adb shell "madplay /root/audio/music_twinkle.mp3"    # MP3
+```
 
-**能放什么音乐、怎么加 MP3 支持** → 见 [](doc/能播放什么音乐-实测.md)
+**能放什么音乐、怎么加 MP3 支持** → 见 [`doc/能播放什么音乐-实测.md`](doc/能播放什么音乐-实测.md)
 
 ---
 
@@ -27,17 +29,18 @@ Playing WAVE '/root/audio/test_440.wav' : Signed 16 bit Little Endian, Rate 4410
 | HPOUT 使能/音量 | ✅ 已配置 |
 | **功放使能 PA_SHDN** | ✅ 已定位（PB2 = gpio-34）并拉高 |
 | 开机自动配置 | ✅ 已写入 `/etc/rc.local`，重启验证通过 |
+| **MP3 播放** | ✅ 已开启（v8 固件），实测 `308 frames decoded` |
 | 测试音频 | ✅ 已生成并放入板子 `/root/audio/` |
 | **听到声音** | ⏳ **待用户插喇叭确认** |
 
 ---
 
-## ★ 完整复刻教程
+## ★ 完整文档
 
-### 👉 [`doc/喇叭-播放音频全程教程.md`](doc/喇叭-播放音频全程教程.md)
-
-含完整诊断链路（从"播放没报错但没声音"追到"功放使能脚被下拉"）、
-原理图解读、时序陷阱、开机脚本、测试音频生成、老师追问预演、自检清单。
+| 文档 | 内容 |
+|---|---|
+| [`doc/喇叭-播放音频全程教程.md`](doc/喇叭-播放音频全程教程.md) | ★ 完整复刻教程（诊断链 / 原理图解读 / 时序陷阱 / 开机脚本 / 老师追问） |
+| [`doc/能播放什么音乐-实测.md`](doc/能播放什么音乐-实测.md) | ★ 音乐播放实测（格式支持 / MP3 开启方法 / 实测记录） |
 
 ---
 
@@ -73,7 +76,8 @@ adb shell "echo 34 > /sys/class/gpio/export; echo out > /sys/class/gpio/gpio34/d
 adb shell "amixer cset name='HPOUT Switch' 1; amixer cset name='HPOUT Gain' 7; amixer cset name='DACL Volume' 200; amixer cset name='DACR Volume' 200"
 
 # ③ 播放
-adb shell "aplay /root/audio/test_440.wav"
+adb shell "aplay /root/audio/test_440.wav"          # WAV
+adb shell "madplay /root/audio/music_twinkle.mp3"   # MP3
 ```
 
 > Windows 侧 adb：`D:\t113_work\flash_tools\adb.exe`
@@ -85,23 +89,24 @@ adb shell "aplay /root/audio/test_440.wav"
 
 | 文件 | 内容 |
 |---|---|
-| `doc/喇叭-播放音频全程教程.md` | ★ **完整复刻教程**（诊断链/原理图/时序） |
-| `doc/能播放什么音乐-实测.md` | ★ **音乐播放实测**（格式支持/MP3开启方法） |
-| `patches/deploy_audio.sh` | 一键部署脚本（推音频+检查环境） |
-| `patches/music_twinkle.mp3` | MP3 测试文件（小星星） |
-| `patches/notify.mp3` | 短提示音 |
+| `doc/喇叭-播放音频全程教程.md` | ★ **完整复刻教程** |
+| `doc/能播放什么音乐-实测.md` | ★ **音乐格式与实测** |
 | `patches/rc_local_new.sh` | 开机自动配置脚本（音频 + 显示） |
+| `patches/deploy_audio.sh` | **一键部署脚本**（推音频 + 检查环境，已实测） |
 | `patches/gen_test_audio.py` | 生成测试音频的 Python 脚本 |
 | `patches/test_440.wav` | 440Hz 标准音 A 测试文件 |
-| `patches/test_scale.wav` | 音阶测试文件（辨识度更高） |
+| `patches/test_scale.wav` | 音阶测试文件 |
+| `patches/music_twinkle.wav` / `.mp3` | 小星星（WAV 与 MP3 对比用） |
+| `patches/notify.mp3` | 短提示音 |
+| `logs/镜像信息.md` | 镜像版本记录 |
 
 ---
 
-## ★ 重要更新：配置已编入固件
+## ★ 重要：配置已编入固件
 
-**成品镜像**：`D:\t113_work\t113_v7_speaker.img`（21,519,360 字节，2026-10-09 20:25）
+**成品镜像**：`D:\t113_work\t113_v8_music.img`（21,650,432 字节）
 
-这版镜像把配置**写进了 SDK 源文件**（不是板上临时改），所以：
+配置写进了 **SDK 源文件**（不是板上临时改），所以：
 - **烧录后开机就自带全部配置**，不需要手动敲任何命令
 - 重烧也不会丢（之前改板子 `/etc/rc.local` 会因 overlay 清空而丢失）
 
@@ -111,22 +116,18 @@ adb shell "aplay /root/audio/test_440.wav"
 
 ## 你明天要做的（3 步）
 
-### 1. 插喇叭
-把喇叭插到板子的 **CN2** 座（2P 1.25mm）。
+1. **插喇叭** → 板子的 **CN2** 座（2P 1.25mm）
+2. **烧录** `t113_v8_music.img`
+3. **播放**：
+   ```sh
+   adb shell "madplay /root/audio/music_twinkle.mp3"
+   ```
+   （或先用 `aplay /root/audio/test_440.wav` 验证基础通路）
 
-### 2. 烧录镜像（或直接用现板）
-**好消息**：`rc.local` 的改动**不需要重新编译烧录** ——
-它已经写进板子的 `/overlay` 持久层，**重启就生效**。
+**听到声音 = 考核⑤完成。**
 
-如果你重新烧录了固件，需要重新装一次 `rc.local`（步骤见教程第 5 部分）。
-
-### 3. 播放测试
-
-```sh
-adb shell "aplay /root/audio/test_scale.wav"
-```
-
-**听到音阶声 = 考核⑤完成。**
+> 开机后**约 30 秒**配置才自动就绪（音频子系统初始化慢），等一下再播。
+> 如果音频文件丢了（重新烧录后），跑 `bash patches/deploy_audio.sh` 重新部署。
 
 ---
 
@@ -152,4 +153,4 @@ adb shell "aplay /root/audio/test_scale.wav"
 
 ---
 
-*最后更新：2026-10-09 ｜ 软件侧全部验证通过，待听声*
+*最后更新：2026-10-09 ｜ 含 MP3 支持，待听声*

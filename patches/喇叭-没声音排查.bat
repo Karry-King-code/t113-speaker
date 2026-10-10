@@ -15,7 +15,7 @@ echo.
 
 echo [Check 2] Amplifier enable - PA_SHDN gpio34
 "%ADB%" shell "cat /sys/class/gpio/gpio34/value 2>/dev/null"
-echo   must be 1. empty or 0 = amplifier OFF = NO SOUND
+echo   must be 0 = amplifier ON. 1 = shut down = NO SOUND
 echo.
 
 echo [Check 3] Mixer settings...
@@ -31,7 +31,7 @@ echo   ALL must say: On
 echo.
 
 echo [Check 5] One-shot auto-fix, then play again - LISTEN!
-"%ADB%" shell "echo 34 > /sys/class/gpio/export 2>/dev/null; echo out > /sys/class/gpio/gpio34/direction 2>/dev/null; echo 1 > /sys/class/gpio/gpio34/value; amixer cset name='HPOUT Switch' 1; amixer cset name='HPOUT Gain' 7; amixer cset name='DACL Volume' 200; amixer cset name='DACR Volume' 200"
+"%ADB%" shell "echo 34 > /sys/class/gpio/export 2>/dev/null; echo out > /sys/class/gpio/gpio34/direction 2>/dev/null; echo 0 > /sys/class/gpio/gpio34/value; amixer cset name='HPOUT Switch' 1; amixer cset name='HPOUT Gain' 7; amixer cset name='DACL Volume' 200; amixer cset name='DACR Volume' 200"
 "%ADB%" shell "aplay /root/audio/test_440.wav"
 echo.
 

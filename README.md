@@ -27,7 +27,7 @@ adb shell "madplay /root/audio/music_twinkle.mp3"    # MP3
 | 声卡驱动 | ✅ 已就绪（`audiocodec` 已注册） |
 | 播放通路 | ✅ 已验证（DAPM 全 On） |
 | HPOUT 使能/音量 | ✅ 已配置 |
-| **功放使能 PA_SHDN** | ✅ 已定位（PB2 = gpio-34）并拉高 |
+| **功放使能 PA_SHDN** | ✅ 已定位（PB2 = gpio-34）；★极性坑已修正（低=工作） |
 | 开机自动配置 | ✅ 已写入 `/etc/rc.local`，重启验证通过 |
 | **MP3 播放** | ✅ 已开启（v8 固件），实测 `308 frames decoded` |
 | 测试音频 | ✅ 已生成并放入板子 `/root/audio/` |
@@ -46,8 +46,10 @@ adb shell "madplay /root/audio/music_twinkle.mp3"    # MP3
 
 ## 核心结论（一句话）
 
-> **喇叭不出声，不是驱动问题，是功放 LM4871 的使能脚 `PA_SHDN`（接 PB2）
-> 被 100kΩ 电阻默认下拉关闭了，必须软件主动拉高。**
+> **喇叭不出声的最后一个坑是极性：LM4871 的 SHUTDOWN 脚 `PA_SHDN`（接 PB2）
+> 是「高电平关断 / 低电平工作」。**
+> 板上的 100kΩ 下拉让它默认就是工作状态 —— **千万别拉高，拉高等于把功放关掉。**
+> （TI 数据手册实锤：VDD applied to SHUTDOWN pin → shutdown mode activated）
 
 ---
 
@@ -58,19 +60,19 @@ adb shell "madplay /root/audio/music_twinkle.mp3"    # MP3
 | 音频芯片 | `audiocodec`（T113 内置） | `/proc/asound/cards` |
 | 功放 | **LM4871**（3W 音频功放） | 原理图第 5 页 |
 | 功放使能脚 | **PA_SHDN** | 原理图第 5 页 |
-| 使能脚引脚 | **PB2** | 原理图第 1 页（引脚 86） |
+| 使能脚引脚 | **PB2**（低电平=工作，高电平=关断） | 原理图第 1 页（引脚 86）+ TI LM4871 手册 |
 | 全局 GPIO 号 | **34**（1×32+2） | 计算 + 已知项交叉验证 |
 | 喇叭座 | **CN2**（HC-1.25-2PWT） | 原理图第 5 页 |
 | 信号来源 | HPOUTR（经 R136 20kΩ） | 原理图第 5 页 |
-| 默认状态 | **关闭**（R138 100kΩ 下拉） | 原理图第 5 页 |
+| 默认状态 | **工作**（R138 100kΩ 下拉 = 低电平 = 工作） | 原理图第 5 页 + 数据手册 |
 
 ---
 
 ## 速查：三条核心命令
 
 ```sh
-# ① 拉高功放使能（必须！否则喇叭不响）
-adb shell "echo 34 > /sys/class/gpio/export; echo out > /sys/class/gpio/gpio34/direction; echo 1 > /sys/class/gpio/gpio34/value"
+# ① 功放使能（★ 低电平=工作！拉高反而关断）
+adb shell "echo 34 > /sys/class/gpio/export; echo out > /sys/class/gpio/gpio34/direction; echo 0 > /sys/class/gpio/gpio34/value"
 
 # ② 设置音量
 adb shell "amixer cset name='HPOUT Switch' 1; amixer cset name='HPOUT Gain' 7; amixer cset name='DACL Volume' 200; amixer cset name='DACR Volume' 200"
@@ -143,14 +145,14 @@ adb shell "madplay /root/audio/music_twinkle.mp3"   # MP3
 
 | 顺序 | 检查 | 命令 | 期望 |
 |---|---|---|---|
-| 1 | 功放使能 | `cat /sys/class/gpio/gpio34/value` | `1` |
+| 1 | 功放使能 | `cat /sys/class/gpio/gpio34/value` | **`0`**（1 = 关断） |
 | 2 | HPOUT 开关 | `amixer cget name='HPOUT Switch'` | `values=on` |
 | 3 | 音量 | `amixer cget name='HPOUT Gain'` | `values=7` |
 | 4 | 播放通路 | 播放中看 DAPM | `DACL/DACR/HPOUT` = `On` |
 | 5 | 音频文件 | `ls /root/audio/` | 文件存在 |
 | 6 | **物理连接** | 看喇叭是否插在 CN2 | 插紧 |
 
-> **第 1 项是最常见的漏项**（重启后 gpio-34 需要约 28 秒才被 rc.local 拉高）。
+> **第 1 项注意**：值应该是 **0**（低电平=工作）。如果看到 1，就是被关断了。
 
 ---
 

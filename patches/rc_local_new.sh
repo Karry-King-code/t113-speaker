@@ -26,12 +26,13 @@ amixer -Dhw:audiocodec cset name='ADC3 Gain' 19
 
 # ---------- 音频：喇叭功放 LM4871 使能 (PA_SHDN = PB2 = gpio34) ----------
 # 原理图第5页：HPOUTR -> R136 -> LM4871 -> CN2 喇叭座
-# PA_SHDN 经 R138(100k) 下拉，默认关闭，必须主动拉高才出声
+# ★数据手册(TI)实锤: LM4871 SHUTDOWN 高电平=关断, 低电平=工作
+# R138(100k) 下拉默认=开; 这里显式拉低确保开(曾误拉高导致无声)
 if [ ! -d /sys/class/gpio/gpio34 ]; then
     echo 34 > /sys/class/gpio/export
 fi
 echo out > /sys/class/gpio/gpio34/direction
-echo 1   > /sys/class/gpio/gpio34/value
+echo 0   > /sys/class/gpio/gpio34/value
 
 # ---------- 显示：彩条 ----------
 for i in 1 2 3 4 5; do

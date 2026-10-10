@@ -41,8 +41,8 @@ if errorlevel 1 (
 echo.
 
 echo [4/6] Enabling speaker amplifier + volume...
-"%ADB%" shell "echo 34 > /sys/class/gpio/export 2>/dev/null; echo out > /sys/class/gpio/gpio34/direction 2>/dev/null; echo 1 > /sys/class/gpio/gpio34/value; amixer cset name='HPOUT Switch' 1 >/dev/null 2>&1; amixer cset name='HPOUT Gain' 7 >/dev/null 2>&1; amixer cset name='DACL Volume' 200 >/dev/null 2>&1; amixer cset name='DACR Volume' 200 >/dev/null 2>&1; echo PA_SHDN=$(cat /sys/class/gpio/gpio34/value)"
-echo       PA_SHDN=1 means amplifier ON.
+"%ADB%" shell "echo 34 > /sys/class/gpio/export 2>/dev/null; echo out > /sys/class/gpio/gpio34/direction 2>/dev/null; echo 0 > /sys/class/gpio/gpio34/value; amixer cset name='HPOUT Switch' 1 >/dev/null 2>&1; amixer cset name='HPOUT Gain' 7 >/dev/null 2>&1; amixer cset name='DACL Volume' 200 >/dev/null 2>&1; amixer cset name='DACR Volume' 200 >/dev/null 2>&1; echo PA_SHDN=$(cat /sys/class/gpio/gpio34/value)"
+echo       PA_SHDN=0 means amplifier ON (datasheet: high=shutdown).
 echo.
 
 echo [5/6] Playing WAV test tone - LISTEN! 2 sec
